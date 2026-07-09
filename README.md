@@ -14,15 +14,19 @@ This project implements the "Log Interaction Screen" for an HCP module, allowing
 
 ## Tech Stack
 
-- **Frontend:** React (with hooks-based state management), Google Inter font
-- **Backend:** Python, FastAPI
+- **Frontend:** React UI, Google Inter font
+- **State Management:** Redux
+- **Backend:** Python + FastAPI
 - **AI Agent Framework:** LangGraph
-- **LLM Provider:** Groq (using `openai/gpt-oss-20b` — see Note on Model Choice below)
-- **Database:** SQLite (via SQLAlchemy ORM; can be swapped to PostgreSQL/MySQL by changing the connection string in `database.py`)
+- **LLM Provider:** Groq
+- **Primary LLM:** `openai/gpt-oss-20b` on Groq
+- **Database:** SQLite via SQLAlchemy ORM for local development; schema is portable to PostgreSQL/MySQL by updating the SQLAlchemy connection string in `database.py`
 
 ## Note on Model Choice
 
-The original assignment specified `gemma2-9b-it`. As of testing, Groq has decommissioned this model (and its initially suggested replacement, `llama-3.1-8b-instant`/`llama-3.3-70b-versatile`) in favor of newer models. This project uses `openai/gpt-oss-20b`, per Groq's official migration guidance, since it's a currently supported, actively maintained model on the platform.
+The original assignment specified **Groq gemma2-9b-it** and mentioned **llama-3.3-70b-versatile** as a possible contextual alternative. During implementation, these originally referenced models were not consistently available in the current Groq environment used for testing. To keep the project runnable on Groq while preserving the required **LangGraph + Groq-based LLM workflow**, the implementation uses **`openai/gpt-oss-20b` via Groq** as a currently supported model.
+
+The architecture is model-agnostic at the service layer, so the configured model can be switched back to **`gemma2-9b-it`** or another supported Groq model by changing the model name in the LLM configuration.
 
 ## LangGraph Agent & Tools
 
@@ -36,4 +40,47 @@ The core of this project is a LangGraph agent that routes a user's natural-langu
 
 A router node (also LLM-powered) classifies each incoming chat message into one of: `log`, `edit`, `history`, `suggest`, or `schedule`, and routes to the corresponding tool node.
 
+## Log Interaction Screen Features
+
+The Log Interaction Screen supports two modes of capturing HCP engagement data:
+
+### 1. Structured Form Mode
+
+Allows the field representative to manually enter interaction details such as:
+- HCP identifier / name
+- interaction date and channel
+- products discussed
+- key discussion notes
+- follow-up actions
+- sentiment / outcome summary
+
+### 2. Conversational Chat Mode
+
+Allows the representative to describe the visit in natural language. The LangGraph agent then:
+- classifies the user’s intent
+- extracts structured interaction fields
+- summarizes the visit
+- identifies follow-up tasks
+- persists the interaction in the CRM database
 ## Project Structure
+
+```text
+backend/
+  agent.py
+  database.py
+  main.py
+  models.py
+  requirements.txt
+  schemas.py
+  test_agent.py
+  test_groq.py
+
+frontend/
+  package.json
+  package-lock.json
+  public/
+  src/
+
+README.md
+.gitignore
+
